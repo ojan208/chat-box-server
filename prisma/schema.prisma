@@ -1,14 +1,43 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  email             String      @unique
+  username          String      @unique
+  password          String
+  profile_picture   String?
+
+  first_user        Chat[]      @relation(name: "first_user")
+  second_user       Chat[]      @relation(name: "second_user")
+  messages          Message[]
+}
+
+model Chat {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  user_one          String      @db.ObjectId
+  user_two          String      @db.ObjectId
+
+  first_user        User        @relation(name: "first_user", references: [id], fields: [user_one])
+  second_user       User        @relation(name: "second_user", references: [id], fields: [user_two])
+  messages          Message[]
+
+  @@unique(name: "users_chat", [user_one, user_two])
+}
+
+model Message {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  sender            String      @db.ObjectId
+  chatId            String      @db.ObjectId
+  read              Boolean
+
+  user              User        @relation(references: [id], fields: [sender])
+  chat              Chat        @relation(references: [id], fields: [chatId])
 }
