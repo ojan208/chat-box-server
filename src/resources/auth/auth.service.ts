@@ -53,7 +53,7 @@ export class AuthService {
                 }
             }
 
-            const { password, id, ...userData } = user
+            const { password, ...userData } = user
             const isMatch = await bcrypt.compare(data.password, password)
 
             if(!isMatch) {
